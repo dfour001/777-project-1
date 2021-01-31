@@ -1,7 +1,34 @@
-import arcpy
+# ------------------------------------------------------------------------------
+# RunAnalysis.py contains functions that will be used to access the required
+# geoprocessing tools.  The functions are organized in the order that they are
+# run when the button to start the analysis is clicked.  The steps are:
+#   - Prepare folder for first run if needed
+#   - Interpolate nitrate levels from sample wells
+#   - Summarize results of the nitrate interpolation at the tract level
+#   - Update nitrates field in tracts shapefile
+#   - Run OLS linear regression
+# ------------------------------------------------------------------------------
+
+# import arcpy
+import os
+
+
+# Prepare folder for first run if needed
+def initialize():
+    """ Creates the needed folders and geodatabases that the tool
+    requires if they do not exist yet. """
+
+    # Create folders if needed
+        for path in [
+                'data/intermediate', # Where intermediate data will be stored 
+                'data/output', # Output shapefiles
+                'ols_reports' # Output pdf files
+                ]:
+            os.makedirs(path, exist_ok=True)
+
 
 # Interpolate nitrate levels from sample wells
-def run_idw(wells, counties, k=2):
+def run_idw(wells, counties, k):
     """ Performs IDW interpolation on nitrate values
     from input wells data.
 
@@ -23,7 +50,7 @@ def run_idw(wells, counties, k=2):
 
 
 # Summarize results of the nitrate interpolation at the tract level
-def get_average_nitrate_dict(tracts, zoneField, idw, k=2):
+def get_average_nitrate_dict(tracts, zoneField, idw, k):
     """ Runs the Zonal Statistics as Table tool to summarize the
     average nitrate levels found in the idw analysis.
 
@@ -63,11 +90,21 @@ def update_nitrates_field(nitrateVals, tracts):
     pass
 
 
-# 
+# Run OLS linear regression
+def run_ols(tracts, k):
+    """ Runs the Ordinary Least Squares linear regression.  The
+    output report file will be saved in the output folder.
+
+    inputs:
+        tracts (shapefile) - The census tracts shapefile
+        k (number) - The input k value for the idw analysis
+    """
          
 
 if __name__ == "__main__":
     wells = ""
     tracts = ""
     counties = ""
+
+    
 
