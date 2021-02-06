@@ -9,7 +9,7 @@
 #   - Run OLS linear regression
 # ------------------------------------------------------------------------------
 
-# import arcpy
+import arcpy
 import os
 
 
@@ -19,12 +19,14 @@ def initialize():
     requires if they do not exist yet. """
 
     # Create folders if needed
-        for path in [
-                'data/intermediate', # Where intermediate data will be stored 
-                'data/output', # Output shapefiles
-                'ols_reports' # Output pdf files
-                ]:
-            os.makedirs(path, exist_ok=True)
+    for path in [
+            'data/intermediate', # Where intermediate data will be stored 
+            'data/output', # Output shapefiles
+            'ols_reports' # Output pdf files
+            ]:
+        os.makedirs(path, exist_ok=True)
+        
+        
 
 
 # Interpolate nitrate levels from sample wells
@@ -41,12 +43,23 @@ def run_idw(wells, counties, k):
     
     output:
         {k}.tif - a raster file in the data/intermediate folder.
-                If it already exists, it will be overwritten.
+                If it already exists, it will be overwritten.  This
+                function returns a string path to the output file.
     """
+    # Set tool parameters
+    in_point_features = wells
+    z_field = "nitr_ran"
+    power = k
 
-    # Set environmental variables
-    # Run IDW tool
-    pass
+    outputPath = f'data/intermediate/{str(k).replace(".", "_")}.tif'
+
+
+    # Set environmental variables and run IDW tool
+    with arcpy.EnvManager(extent=counties, mask=counties, overwriteOutput=True):
+        output = arcpy.sa.Idw(in_point_features, z_field, power=power)
+        output.save(outputPath)
+
+    return outputPath
 
 
 # Summarize results of the nitrate interpolation at the tract level
@@ -102,9 +115,18 @@ def run_ols(tracts, k):
          
 
 if __name__ == "__main__":
-    wells = ""
+    wells = "data/well_nitrate.shp"
     tracts = ""
-    counties = ""
+    counties = "data/cancer_county.shp"
+
+    print('Initialize')
+    initialize()
+
+    print('Run IDW')
+    idwOutput = run_idw(wells, counties, 2)
+
+    print('Done!')
+
 
     
 
