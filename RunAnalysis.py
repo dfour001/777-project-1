@@ -80,8 +80,15 @@ def get_average_nitrate_dict(tracts, zoneField, idw, k):
         shapefile.
     """
     # Run Zonal Statistics as Table tool
+    arcpy.sa.ZonalStatisticsAsTable(tracts, zoneField, idw, "in_memory/zonalStatistics")
+
     # Return output as python dict
-    pass
+    nitrateDict = {}
+    with arcpy.da.SearchCursor("in_memory/zonalStatistics", [zoneField, "MEAN"]) as cur:
+        for tract, mean in cur:
+            nitrateDict[tract] = mean
+
+    return nitrateDict
 
 
 # Update nitrates field in tracts
@@ -116,14 +123,20 @@ def run_ols(tracts, k):
 
 if __name__ == "__main__":
     wells = "data/well_nitrate.shp"
-    tracts = ""
+    tracts = "data/cancer_tracts.shp"
     counties = "data/cancer_county.shp"
+    k = 2
 
     print('Initialize')
     initialize()
 
     print('Run IDW')
-    idwOutput = run_idw(wells, counties, 2)
+    idwOutput = run_idw(wells, counties, k)
+
+    print('Get Average Nitrate Dict')
+    nitrateDict = get_average_nitrate_dict(tracts, "GEOID10", idwOutput, k)
+
+    
 
     print('Done!')
 
