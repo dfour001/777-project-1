@@ -56,7 +56,7 @@ def run_idw(wells, counties, k):
 
     # Set environmental variables and run IDW tool
     with arcpy.EnvManager(extent=counties, mask=counties, overwriteOutput=True):
-        output = arcpy.sa.Idw(in_point_features, z_field, power=power)
+        output = arcpy.sa.Idw(in_point_features, z_field, power=power, cell_size=0.005)
         output.save(outputPath)
 
     return outputPath
@@ -80,13 +80,19 @@ def get_average_nitrate_dict(tracts, zoneField, idw, k):
         shapefile.
     """
     # Run Zonal Statistics as Table tool
-    arcpy.sa.ZonalStatisticsAsTable(tracts, zoneField, idw, "in_memory/zonalStatistics")
+    outTable = "in_memory/zonalStatistics"
+
+    arcpy.sa.ZonalStatisticsAsTable(tracts, zoneField, idw, outTable)
 
     # Return output as python dict
     nitrateDict = {}
     with arcpy.da.SearchCursor("in_memory/zonalStatistics", [zoneField, "MEAN"]) as cur:
         for tract, mean in cur:
             nitrateDict[tract] = mean
+
+    outPath = r'C:\Users\danie\Desktop\GEOG777\777-project-1\data\intermediate\table.gdb'
+    arcpy.env.overwriteOutput = True
+    arcpy.TableToTable_conversion("in_memory/zonalStatistics", outPath, "woooork2")
 
     return nitrateDict
 
@@ -105,9 +111,23 @@ def update_nitrates_field(nitrateVals, tracts):
 
     # Check if tracts has the mean_nitrate field.  If it does not,
     # create it.
+    fields = [field.name for field in arcpy.ListFields(tracts)]
+    
+    if "mean_no3" not in fields:
+        print("Creating mean_no3 field")
+        arcpy.AddField_management(tracts, "mean_no3", "DOUBLE")
 
     # Add nitrate data via update cursor
-    pass
+    with arcpy.da.UpdateCursor(tracts, ["GEOID10", "mean_no3"]) as cur:
+        for row in cur:
+            try:
+                id = row[0]
+                val = nitrateVals[id]
+
+                row[1] = val
+                cur.updateRow(row)
+            except Exception as e:
+                print(f'Error updating id {id}')
 
 
 # Run OLS linear regression
@@ -125,7 +145,7 @@ if __name__ == "__main__":
     wells = "data/well_nitrate.shp"
     tracts = "data/cancer_tracts.shp"
     counties = "data/cancer_county.shp"
-    k = 2
+    k = 2.5
 
     print('Initialize')
     initialize()
@@ -136,7 +156,8 @@ if __name__ == "__main__":
     print('Get Average Nitrate Dict')
     nitrateDict = get_average_nitrate_dict(tracts, "GEOID10", idwOutput, k)
 
-    
+    print('Upating tracts with mean nitrate values')
+    update_nitrates_field(nitrateDict, tracts)    
 
     print('Done!')
 
