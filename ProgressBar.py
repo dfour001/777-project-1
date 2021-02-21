@@ -19,8 +19,8 @@ class ProgressBar(Frame):
         self.prog = Label(self.barContainer, bg="orange")
         self.prog.place(x=0, relheight=1, relwidth = float(initProgress))
         
-        self.lblProg = Label(self.barContainer, bg="black", fg="white", text=str(initProgress))
-        self.lblProg.place(x=0, rely=1, relwidth=1, justify="center")
+        self.lblProg = Label(self.frameProgress, bg="black", fg="white", justify="center", text=f"{initProgress}%")
+        self.lblProg.place(x=0, rely=0.23, relwidth = 1)
 
         # Add status text
 
@@ -31,6 +31,7 @@ class ProgressBar(Frame):
                 x - float between 0 and 1 representing % of progress
         """
         self.prog.place(x=0, relheight=1, relwidth=x)
+        self.lblProg["text"] = f"{x}%"
 
     def set_status(self, text):
         """ Sets the status label to display input text """
