@@ -10,7 +10,7 @@ class ProgressBar(Frame):
         self.frameProgress = Frame(root, bg="black", bd=5, relief=tk.RIDGE)
         self.frameProgress.place(relheight=0.2, relwidth=0.5, relx=0.25, rely=0.4)
         self.frameProgress.focus() # Just to make the entry box lose focus.  The blinking cursor is annoying!
-
+        
         # Add bar container
         self.barContainer = Frame(self.frameProgress, bg="white", bd=2, relief=tk.SUNKEN)
         self.barContainer.place(relheight=0.12, relwidth=0.9, relx=0.05, rely=0.1)
@@ -23,6 +23,8 @@ class ProgressBar(Frame):
         self.lblProg.place(x=0, rely=0.23, relwidth = 1)
 
         # Add status text
+        self.lblStatus = Label(self.frameProgress, bg="black", fg="white", justify="center")
+        self.lblStatus.place(x=0, rely=0.57, relwidth=1)
 
 
     def set_prog(self, x):
@@ -32,8 +34,15 @@ class ProgressBar(Frame):
         """
         self.prog.place(x=0, relheight=1, relwidth=x)
         self.lblProg["text"] = f"{x}%"
+        self.frameProgress.update()
 
     def set_status(self, text):
         """ Sets the status label to display input text """
+        self.lblStatus["text"] = str(text)
+        self.frameProgress.update()
 
-        pass
+    
+    def close(self):
+        """ Destroys the ProgressBar instance """
+        self.frameProgress.destroy()
+        self.destroy()

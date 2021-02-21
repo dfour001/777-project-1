@@ -7,6 +7,8 @@ import tkinter as tk
 import tkinter.font as tkFont
 import tkinter.messagebox as messagebox
 from ProgressBar import ProgressBar
+from time import sleep
+
 
 root = tk.Tk()
 root.title("GEOG 777 - Project 1 - Daniel Fourquet")
@@ -39,15 +41,26 @@ def run_analysis(k):
         return
 
     # Run analysis
-    btnRunAnalysis["state"] = "disabled"
+    # btnRunAnalysis["state"] = "disabled"
 
     # Show progress bar
     prog = ProgressBar(root)
     
+    root.update()
     
+    # Load arcpy
+    prog.set_status("Loading arcpy...")
+    import RunAnalysis as ra
 
+    prog.set_status("Preparing folder structure...")
+    ra.initialize()
 
-    print('done?')
+    prog.set_status(f"Interpolating nitrate levels from sample wells, K={k}...")
+    sleep(3)
+    
+    prog.close()
+    # root.update()
+
 
 
 
@@ -86,6 +99,4 @@ frameResults = tk.Frame(root, bg="white")
 frameResults.place(relheight=1, relwidth=0.5, relx=0.5)
 
 
-prog = ProgressBar(root)
-prog.set_prog(0.25)
 root.mainloop()
