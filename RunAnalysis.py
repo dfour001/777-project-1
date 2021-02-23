@@ -139,7 +139,18 @@ def run_ols(tracts, k):
         tracts (shapefile) - The census tracts shapefile
         k (number) - The input k value for the idw analysis
     """
-         
+
+    # Create UID field if it does not exist
+    fields = [field.name for field in arcpy.ListFields(tracts)]
+    if "UID" not in fields:
+        arcpy.AddField_management(tracts, "UID", "LONG")
+        with arcpy.da.UpdateCursor(tracts, ["FID", "UID"]) as cur:
+            for row in cur:
+                row[1] = row[0]
+                cur.updateRow(row)
+
+    arcpy.OrdinaryLeastSquares_stats(tracts, "UID", f'data/output/OLS.shp', 'canrate', 'mean_no3', Output_Report_File=f"ols_reports/{k}_ols.pdf")
+
 
 if __name__ == "__main__":
     wells = "data/well_nitrate.shp"
@@ -147,17 +158,19 @@ if __name__ == "__main__":
     counties = "data/cancer_county.shp"
     k = 2.5
 
-    print('Initialize')
-    initialize()
+    # print('Initialize')
+    # initialize()
 
-    print('Run IDW')
-    idwOutput = run_idw(wells, counties, k)
+    # print('Run IDW')
+    # idwOutput = run_idw(wells, counties, k)
 
-    print('Get Average Nitrate Dict')
-    nitrateDict = get_average_nitrate_dict(tracts, "GEOID10", idwOutput, k)
+    # print('Get Average Nitrate Dict')
+    # nitrateDict = get_average_nitrate_dict(tracts, "GEOID10", idwOutput, k)
 
-    print('Upating tracts with mean nitrate values')
-    update_nitrates_field(nitrateDict, tracts)    
+    # print('Upating tracts with mean nitrate values')
+    # update_nitrates_field(nitrateDict, tracts)    
+
+    run_ols(tracts, k)
 
     print('Done!')
 

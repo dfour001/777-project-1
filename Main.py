@@ -41,7 +41,12 @@ def run_analysis(k):
         return
 
     # Run analysis
-    # btnRunAnalysis["state"] = "disabled"
+    btnRunAnalysis["state"] = "disabled"
+
+    # Input data paths
+    wells = "data/well_nitrate.shp"
+    tracts = "data/cancer_tracts.shp"
+    counties = "data/cancer_county.shp"
 
     # Show progress bar
     prog = ProgressBar(root)
@@ -50,16 +55,34 @@ def run_analysis(k):
     
     # Load arcpy
     prog.set_status("Loading arcpy...")
+    prog.set_prog(0)
     import RunAnalysis as ra
 
     prog.set_status("Preparing folder structure...")
     ra.initialize()
 
-    prog.set_status(f"Interpolating nitrate levels from sample wells, K={k}...")
-    sleep(3)
+    prog.set_status(f"Interpolating nitrate levels from sample wells with IDW, K={k}...")
+    prog.set_prog(0.25)
+    idwOutput = ra.run_idw(wells, counties, k)
+
+    prog.set_status("Summarizing results of the nitrate interpolation at the tract level...")
+    prog.set_prog(0.3)
+    nitrateVals = ra.get_average_nitrate_dict(tracts, "GEOID10", idwOutput, k)
+
+    prog.set_status("Updating nitrates field in tracts...")
+    prog.set_prog(0.5)
+    ra.update_nitrates_field(nitrateVals, tracts)
+
+    prog.set_status("Running ordinary least squares linear regression...")
+    prog.set_prog(0.75)
+    ra.run_ols(tracts, k)
+
+    prog.set_status("Done!")
+    prog.set_prog(1)
+    sleep(2)
     
     prog.close()
-    # root.update()
+    btnRunAnalysis["state"] = "active"
 
 
 

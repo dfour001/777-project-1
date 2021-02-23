@@ -6,6 +6,9 @@ class ProgressBar(Frame):
     def __init__(self, root, initProgress = 0.75):
         super().__init__(root)
 
+        # self.backgroundImg = tk.PhotoImage(file="background.gif")
+        # self.backdrop = Label(root, image=self.backgroundImg)
+        # self.backdrop.place(x=0, y=0, relwidth=1, relheight=1)
         # Display progress bar frame
         self.frameProgress = Frame(root, bg="black", bd=5, relief=tk.RIDGE)
         self.frameProgress.place(relheight=0.2, relwidth=0.5, relx=0.25, rely=0.4)
@@ -33,7 +36,7 @@ class ProgressBar(Frame):
                 x - float between 0 and 1 representing % of progress
         """
         self.prog.place(x=0, relheight=1, relwidth=x)
-        self.lblProg["text"] = f"{x}%"
+        self.lblProg["text"] = f"{int(x*100)}%"
         self.frameProgress.update()
 
     def set_status(self, text):
@@ -45,4 +48,5 @@ class ProgressBar(Frame):
     def close(self):
         """ Destroys the ProgressBar instance """
         self.frameProgress.destroy()
+        self.backdrop.destroy()
         self.destroy()
