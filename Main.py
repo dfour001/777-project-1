@@ -84,6 +84,14 @@ def run_analysis(k):
     prog.close()
     btnRunAnalysis["state"] = "active"
 
+    show_frameResults(k)
+
+
+def show_frameResults(k):
+    """ Displays the results frame and updates the images with the latest
+        analysis data """
+
+    frameResults.place(relheight=0.9, relwidth=0.4, relx=0.55, rely=0.05)
 
 
 
@@ -118,8 +126,8 @@ btnRunAnalysis.place(rely=0.83, relwidth=0.3, relx=0.35)
 
 
 # Results Frame
-frameResults = tk.Frame(root, bg="white")
-frameResults.place(relheight=1, relwidth=0.5, relx=0.5)
+frameResults = tk.Frame(root, bg="black", bd=5, relief=tk.RIDGE)
+
 
 
 root.mainloop()
