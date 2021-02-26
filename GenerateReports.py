@@ -35,6 +35,11 @@ def generate_reports(k):
     # Export IDW report
     IDWLayout.exportToJPEG(r'reports/IDW_{}.jpg'.format(str(k).replace(".","_")), 150)
 
+    # Update OLS in map
+    OLSMap = aprx.listMaps('OLSMap')[0]
+    OLSLayer = OLSMap.listLayers('OLS')[0]
+    update_dataset_source(OLSLayer, k)
+    
     # Export OLS report
     OLSLayout = aprx.listLayouts('OLS*')[0]
     OLSLayout.exportToJPEG(r'reports/OLS_{}.jpg'.format(str(k).replace(".","_")), 150)

@@ -6,21 +6,28 @@
 import tkinter as tk
 import tkinter.font as tkFont
 import tkinter.messagebox as messagebox
+from tkinter import ttk
 from ProgressBar import ProgressBar
 from time import sleep
+from PIL import Image, ImageTk
 
 
 root = tk.Tk()
 root.title("GEOG 777 - Project 1 - Daniel Fourquet")
 root.resizable(False, False)
-canvas = tk.Canvas(root, height=600, width=900, bg="red")
-canvas.pack()
+
+
 
 # Background Image
+BackgroundImg = ImageTk.PhotoImage(Image.open("backgroundInit.jpg"))
+imgBackground = tk.Label(root, height=600, width=900, image=BackgroundImg)
+imgBackground.pack()
 
+# Results image
+img = None
 
 # Fonts
-fontTitle = tkFont.Font(family="Lucida Grande", size=20)
+fontTitle = tkFont.Font(family="Oswald", size=20)
 fontParagraph = tkFont.Font(family="Lucida Grande", size=12)
 fontSmall = tkFont.Font(family="Lucida Grande", size=10)
 
@@ -29,6 +36,7 @@ def run_analysis(k):
     """ Runs the geoprocessing tools from RunAnalysis.py, generates
         output images via ArcGIS Pro, and displays the output in the
         results frame """
+    
     
     # Validate K entry
     try:
@@ -53,10 +61,13 @@ def run_analysis(k):
     
     root.update()
     
-    # Load arcpy
+    # Load arcpy - this is imported here to prevent waiting time when
+    #              the program is first loaded
     prog.set_status("Loading arcpy...")
     prog.set_prog(0)
+    import arcpy
     import RunAnalysis as ra
+    import GenerateReports as gr
 
     prog.set_status("Preparing folder structure...")
     ra.initialize()
@@ -77,6 +88,10 @@ def run_analysis(k):
     prog.set_prog(0.75)
     ra.run_ols(tracts, k)
 
+    prog.set_status("Creating final maps...")
+    prog.set_prog(0.90)
+    gr.generate_reports(k)
+
     prog.set_status("Done!")
     prog.set_prog(1)
     sleep(2)
@@ -91,7 +106,44 @@ def show_frameResults(k):
     """ Displays the results frame and updates the images with the latest
         analysis data """
 
+    global img
+
+    def load_image(k, type):     
+        fileName = f'reports/{type}_{str(k).replace(".","_")}.jpg'
+        print(fileName)
+        img = Image.open(fileName)
+        img = img.resize((353,457))
+        imgTk = ImageTk.PhotoImage(img)
+        return imgTk
+
+    def change_image(k, type, curMap):
+        imgTk = load_image(k, type)
+        curMap.configure(image=imgTk)
+        curMap.image = imgTk
+
+    for child in frameResults.winfo_children():
+        child.destroy()
+
+    # Show frameResults
     frameResults.place(relheight=0.9, relwidth=0.4, relx=0.55, rely=0.05)
+
+    # Show map image (default to IDW map)
+    img = load_image(k, "IDW")
+    curMap = tk.Label(frameResults, image=img)
+    curMap.pack()
+
+    # Show button controls
+    frameButtons = tk.Frame(frameResults, bg="black", height=80) 
+    frameButtons.pack(side='bottom', fill='x')
+
+    btnIDW = ttk.Button(frameButtons, text="Show IDW Results", command=lambda: change_image(k, "IDW", curMap))
+    btnIDW.pack()
+
+    btnOLS = ttk.Button(frameButtons, text="Show OLS Results", command=lambda: change_image(k, "OLS", curMap))
+    btnOLS.pack()
+    
+
+
 
 
 
@@ -120,14 +172,13 @@ txtKVal = tk.Entry(frameKVal)
 txtKVal.insert(0, "1.2") # Set default value to 1.2
 txtKVal.pack(side="left")
 
-btnRunAnalysis = tk.Button(frameSetup, text="Run Analysis", command=lambda: run_analysis(txtKVal.get()))
+btnRunAnalysis = ttk.Button(frameSetup, text="Run Analysis", command=lambda: run_analysis(txtKVal.get()))
 btnRunAnalysis.place(rely=0.83, relwidth=0.3, relx=0.35)
 
 
 
 # Results Frame
 frameResults = tk.Frame(root, bg="black", bd=5, relief=tk.RIDGE)
-
 
 
 root.mainloop()

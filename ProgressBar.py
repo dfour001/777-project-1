@@ -1,13 +1,13 @@
 import tkinter as tk
 from tkinter import Frame, Label
-from PIL import Image
+from PIL import Image, ImageTk
 
 class ProgressBar(Frame):
     """ A custom widget based on the Frame class that displays a progress bar and status text """
     def __init__(self, root, initProgress = 0.75):
         super().__init__(root)
 
-        self.backgroundImg = tk.PhotoImage("binding_dark.png")
+        self.backgroundImg = ImageTk.PhotoImage(Image.open("backgroundProgress.jpg"))
         self.backdrop = Label(root, image=self.backgroundImg)
         self.backdrop.place(x=0, y=0, relwidth=1, relheight=1)
         # Display progress bar frame

@@ -149,7 +149,7 @@ def run_ols(tracts, k):
                 row[1] = row[0]
                 cur.updateRow(row)
 
-    arcpy.OrdinaryLeastSquares_stats(tracts, "UID", f'data/output/OLS.shp', 'canrate', 'mean_no3', Output_Report_File=f"ols_reports/{k}_ols.pdf")
+    arcpy.OrdinaryLeastSquares_stats(tracts, "UID", f'data/output/OLS_{str(k).replace(".","_")}.shp', 'canrate', 'mean_no3', Output_Report_File=f"ols_reports/{k}_ols.pdf")
 
 
 if __name__ == "__main__":
