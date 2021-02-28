@@ -6,11 +6,12 @@
 import tkinter as tk
 import tkinter.font as tkFont
 import tkinter.messagebox as messagebox
+from tkinter import filedialog
 from tkinter import ttk
 from ProgressBar import ProgressBar
 from time import sleep
 from PIL import Image, ImageTk
-
+import subprocess
 
 root = tk.Tk()
 root.title("GEOG 777 - Project 1 - Daniel Fourquet")
@@ -26,6 +27,9 @@ imgBackground.pack()
 # Results image
 img = None
 
+# Moran's I report link
+moransReport = None
+
 # Fonts
 fontTitle = tkFont.Font(family="Oswald", size=20)
 fontParagraph = tkFont.Font(family="Lucida Grande", size=12)
@@ -37,6 +41,7 @@ def run_analysis(k):
         output images via ArcGIS Pro, and displays the output in the
         results frame """
     
+    global moransReport
     
     # Validate K entry
     try:
@@ -88,6 +93,10 @@ def run_analysis(k):
     prog.set_prog(0.75)
     ra.run_ols(tracts, k)
 
+    prog.set_status("Running Moran's I...")
+    prog.set_prog(0.8)
+    moransReport = ra.run_moransI(k)
+
     prog.set_status("Creating final maps...")
     prog.set_prog(0.90)
     gr.generate_reports(k)
@@ -98,6 +107,10 @@ def run_analysis(k):
     
     prog.close()
     btnRunAnalysis["state"] = "active"
+    BackgroundImg = ImageTk.PhotoImage(Image.open("backgroundResults.jpg"))
+    imgBackground.configure(image=BackgroundImg)
+    imgBackground.image=BackgroundImg
+    # imgBackground = tk.Label(root, height=600, width=900, image=BackgroundImg)
 
     show_frameResults(k)
 
@@ -107,20 +120,42 @@ def show_frameResults(k):
         analysis data """
 
     global img
+    global moransReport
 
+    # Functions for frameResults
     def load_image(k, type):     
         fileName = f'reports/{type}_{str(k).replace(".","_")}.jpg'
-        print(fileName)
         img = Image.open(fileName)
         img = img.resize((353,457))
         imgTk = ImageTk.PhotoImage(img)
         return imgTk
 
     def change_image(k, type, curMap):
+        """ Change the image in the results frame """
         imgTk = load_image(k, type)
         curMap.configure(image=imgTk)
         curMap.image = imgTk
 
+    def save_as_pdf(k, type):
+        saveAsPath = filedialog.asksaveasfilename(initialdir="/", filetypes=[("pdf files", "*.pdf")])
+        if ".pdf" not in saveAsPath.lower():
+            saveAsPath += '.pdf'
+        imagePath = f'reports/{type}_{str(k).replace(".","_")}.jpg'
+        img = Image.open(imagePath)
+        img.save(saveAsPath, "PDF")
+
+    def view_ols_report(k):
+        import os
+        olsFile = f'{os.getcwd()}\\ols_reports\\{k}_ols.pdf'
+        subprocess.Popen(olsFile, shell=True)
+
+    def view_moransI_report(path):
+        if path:
+            subprocess.Popen(path, shell=True)
+        else:
+            messagebox.showerror("Error loading Moran's I report", "There was an error loading the Moran's I report.")
+
+    # Reset frameResults to clear any previous analysis runs
     for child in frameResults.winfo_children():
         child.destroy()
 
@@ -137,10 +172,22 @@ def show_frameResults(k):
     frameButtons.pack(side='bottom', fill='x')
 
     btnIDW = ttk.Button(frameButtons, text="Show IDW Results", command=lambda: change_image(k, "IDW", curMap))
-    btnIDW.pack()
+    btnIDW.place(x=5, rely=0.15, relwidth=0.3, relheight=0.3)
+
+    btnIDWSave = ttk.Button(frameButtons, text="Save IDW to PDF...", command=lambda: save_as_pdf(k, "IDW"))
+    btnIDWSave.place(relx=0.35, rely=0.15, relheight=0.3)
+
+    btnMoransI = ttk.Button(frameButtons, text="View Morans I", command=lambda: view_moransI_report(moransReport))
+    btnMoransI.place(relx=0.68, rely=0.15, relwidth=0.3, relheight=0.3)
 
     btnOLS = ttk.Button(frameButtons, text="Show OLS Results", command=lambda: change_image(k, "OLS", curMap))
-    btnOLS.pack()
+    btnOLS.place(x=5, rely=0.6, relwidth=0.3, relheight=0.3)
+
+    btnOLSSave = ttk.Button(frameButtons, text="Save OLS to PDF...", command=lambda: save_as_pdf(k, "OLS"))
+    btnOLSSave.place(relx=0.35, rely=0.6, relwidth=0.3, relheight=0.3)
+
+    btnViewOLS = ttk.Button(frameButtons, text="View OLS Report", command=lambda: view_ols_report(k))
+    btnViewOLS.place(relx=0.68, rely=0.6, relwidth=0.3, relheight=0.3)
     
 
 

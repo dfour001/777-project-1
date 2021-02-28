@@ -1,0 +1,1 @@
+"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe" "C:\Users\danie\Desktop\GEOG777\777-project-1\Main.py"

@@ -152,26 +152,29 @@ def run_ols(tracts, k):
     arcpy.OrdinaryLeastSquares_stats(tracts, "UID", f'data/output/OLS_{str(k).replace(".","_")}.shp', 'canrate', 'mean_no3', Output_Report_File=f"ols_reports/{k}_ols.pdf")
 
 
+def run_moransI(k):
+    """ Runs Moran's I spatial autocorrelation analysis on the output
+        of the OLS analysis.  The results are exported as an html file.
+        Returns the path to this html file. """
+    
+    olsFile = f'data/output/OLS_{str(k).replace(".","_")}.shp'
+    
+    mI = arcpy.SpatialAutocorrelation_stats(olsFile, 'StdResid', 'GENERATE_REPORT', 'INVERSE_DISTANCE', 'EUCLIDEAN_DISTANCE', 'ROW')
+    
+    report = mI.getOutput(3) # Path to output html report
+    
+    return report
+
+
 if __name__ == "__main__":
     wells = "data/well_nitrate.shp"
     tracts = "data/cancer_tracts.shp"
     counties = "data/cancer_county.shp"
     k = 2.5
 
-    # print('Initialize')
-    # initialize()
-
-    # print('Run IDW')
-    # idwOutput = run_idw(wells, counties, k)
-
-    # print('Get Average Nitrate Dict')
-    # nitrateDict = get_average_nitrate_dict(tracts, "GEOID10", idwOutput, k)
-
-    # print('Upating tracts with mean nitrate values')
-    # update_nitrates_field(nitrateDict, tracts)    
-
-    run_ols(tracts, k)
-
+    report = run_moransI(11.12)
+    print("hrm...")
+    print(report)
     print('Done!')
 
 
